@@ -1,0 +1,1910 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="NYC Transit Rental Guide - Real-time subway station rental data analysis for 467 neighborhoods across New York City">
+    <meta name="keywords" content="NYC subway, rental prices, New York apartments, subway stations, transit guide">
+    <meta name="author" content="NYC Transit Analytics">
+    
+    <!-- Preconnect to improve performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://unpkg.com">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://liamblank.com">
+    
+    <!-- DNS Prefetch for faster resolution -->
+    <link rel="dns-prefetch" href="https://liamblank.com">
+    <link rel="dns-prefetch" href="https://tile.openstreetmap.org">
+    
+    <!-- External Stylesheets with Resource Hints -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Merriweather:wght@700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+    
+    <style>
+        /* Production-Optimized CSS with Enhanced Performance */
+        :root {
+            /* Color System with Semantic Naming */
+            --primary-blue: #2563eb;
+            --primary-blue-dark: #1d4ed8;
+            --primary-blue-light: #3b82f6;
+            --secondary-teal: #0891b2;
+            --secondary-teal-dark: #0e7490;
+            --accent-purple: #7c3aed;
+            --accent-purple-dark: #6d28d9;
+            --success-green: #059669;
+            --success-green-light: #10b981;
+            --warning-amber: #d97706;
+            --warning-amber-light: #f59e0b;
+            --danger-red: #dc2626;
+            --danger-red-light: #ef4444;
+            --info-cyan: #06b6d4;
+            --info-cyan-light: #14b8a6;
+            
+            /* Neutral Colors */
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --gray-950: #030712;
+            
+            /* Shadow System */
+            --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.05);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.05);
+            --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+            
+            /* Transition System */
+            --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-base: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
+            
+            /* Spacing System */
+            --space-xs: 0.5rem;
+            --space-sm: 0.75rem;
+            --space-md: 1rem;
+            --space-lg: 1.5rem;
+            --space-xl: 2rem;
+            --space-2xl: 3rem;
+            
+            /* Border Radius System */
+            --radius-sm: 0.375rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+            --radius-2xl: 1.5rem;
+            --radius-full: 9999px;
+            
+            /* Z-Index System */
+            --z-base: 0;
+            --z-dropdown: 1000;
+            --z-sticky: 1020;
+            --z-fixed: 1030;
+            --z-modal-backdrop: 1040;
+            --z-modal: 1050;
+            --z-popover: 1060;
+            --z-tooltip: 1070;
+        }
+
+        /* Global Reset with Performance Optimizations */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Optimize Font Loading */
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--gray-800);
+            background: linear-gradient(135deg, #f0f9ff 0%, #ffffff 50%, #fafafa 100%);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+            min-height: 100vh;
+        }
+
+        /* Enhanced Typography System */
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Merriweather', Georgia, 'Times New Roman', serif;
+            font-weight: 700;
+            color: var(--gray-900);
+            letter-spacing: -0.025em;
+            line-height: 1.2;
+            margin-bottom: var(--space-md);
+        }
+
+        h1 { font-size: clamp(2rem, 5vw, 3rem); }
+        h2 { font-size: clamp(1.75rem, 4vw, 2.5rem); }
+        h3 { font-size: clamp(1.5rem, 3vw, 2rem); }
+        h4 { font-size: clamp(1.25rem, 2.5vw, 1.75rem); }
+        h5 { font-size: clamp(1.125rem, 2vw, 1.5rem); }
+        h6 { font-size: clamp(1rem, 1.5vw, 1.25rem); }
+
+        /* Elementor Pro Integration Classes */
+        .elementor-widget-nyc-subway-dashboard {
+            width: 100%;
+            max-width: 100%;
+            overflow: visible;
+            position: relative;
+            container-type: inline-size;
+        }
+
+        .elementor-widget-container {
+            overflow: visible;
+            width: 100%;
+        }
+
+        /* Main Dashboard Container */
+        .nyc-subway-dashboard {
+            width: 100%;
+            min-height: 100vh;
+            position: relative;
+            background: inherit;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Enhanced Loading State */
+        .loading-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+            flex-direction: column;
+            text-align: center;
+            padding: var(--space-2xl);
+            gap: var(--space-lg);
+        }
+
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--gray-200);
+            border-top-color: var(--primary-blue);
+            border-radius: var(--radius-full);
+            animation: spin 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Hero Section with Advanced Effects */
+        .dashboard-hero {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-teal) 50%, var(--info-cyan) 100%);
+            color: white;
+            padding: clamp(3rem, 8vw, 6rem) clamp(1.5rem, 4vw, 3rem);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow-2xl);
+            isolation: isolate;
+        }
+
+        .dashboard-hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: 
+                radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+            animation: float 20s ease-in-out infinite;
+            z-index: -1;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(-20px, -20px) scale(1.05); }
+            66% { transform: translate(20px, -10px) scale(0.95); }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .hero-title {
+            font-size: clamp(2.5rem, 7vw, 4rem);
+            font-weight: 900;
+            margin-bottom: var(--space-lg);
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .hero-subtitle {
+            font-size: clamp(1.25rem, 3vw, 1.75rem);
+            margin-bottom: var(--space-2xl);
+            opacity: 0.95;
+            font-weight: 400;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: var(--space-xl);
+            margin-top: var(--space-2xl);
+        }
+
+        .hero-stat {
+            text-align: center;
+            padding: var(--space-lg);
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: var(--radius-lg);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform var(--transition-base), background-color var(--transition-base);
+        }
+
+        .hero-stat:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .hero-stat-number {
+            display: block;
+            font-size: clamp(2rem, 5vw, 3rem);
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: var(--space-sm);
+        }
+
+        .hero-stat-label {
+            font-size: 0.875rem;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* Navigation with Enhanced Accessibility */
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: var(--space-sm);
+            background: var(--primary-blue);
+            color: white;
+            padding: var(--space-sm) var(--space-md);
+            text-decoration: none;
+            border-radius: var(--radius-md);
+            z-index: var(--z-tooltip);
+            font-weight: 600;
+            transition: top var(--transition-fast);
+        }
+
+        .skip-link:focus {
+            top: var(--space-sm);
+        }
+
+        .dashboard-nav {
+            background: white;
+            border-bottom: 1px solid var(--gray-200);
+            box-shadow: var(--shadow-sm);
+            position: sticky;
+            top: 0;
+            z-index: var(--z-sticky);
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        .nav-content {
+            display: flex;
+            max-width: 1400px;
+            margin: 0 auto;
+            overflow-x: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--gray-300) transparent;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .nav-content::-webkit-scrollbar {
+            height: 4px;
+        }
+
+        .nav-content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .nav-content::-webkit-scrollbar-thumb {
+            background: var(--gray-300);
+            border-radius: var(--radius-full);
+        }
+
+        .nav-button {
+            padding: var(--space-md) var(--space-lg);
+            border: none;
+            background: transparent;
+            border-bottom: 3px solid transparent;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-base);
+            color: var(--gray-600);
+            white-space: nowrap;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            min-height: 48px;
+            position: relative;
+            isolation: isolate;
+        }
+
+        .nav-button::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom, transparent, var(--gray-50));
+            opacity: 0;
+            transition: opacity var(--transition-base);
+            z-index: -1;
+        }
+
+        .nav-button:hover::before,
+        .nav-button:focus::before {
+            opacity: 1;
+        }
+
+        .nav-button:hover,
+        .nav-button:focus {
+            color: var(--primary-blue);
+            border-bottom-color: var(--gray-300);
+        }
+
+        .nav-button:focus-visible {
+            outline: 2px solid var(--primary-blue);
+            outline-offset: -2px;
+            border-radius: var(--radius-sm);
+        }
+
+        .nav-button.active {
+            color: var(--primary-blue);
+            border-bottom-color: var(--primary-blue);
+        }
+
+        .nav-button.active::before {
+            opacity: 1;
+        }
+
+        .nav-icon {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+
+        /* Main Content Area */
+        .dashboard-main {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: clamp(var(--space-xl), 4vw, var(--space-2xl));
+            flex: 1;
+            width: 100%;
+        }
+
+        /* Responsive Grid System */
+        .dashboard-grid {
+            display: grid;
+            gap: var(--space-xl);
+            grid-template-columns: 1fr;
+        }
+
+        @container (min-width: 768px) {
+            .dashboard-grid.md-grid-cols-2 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .dashboard-grid.md-grid-cols-3 {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @container (min-width: 1024px) {
+            .dashboard-grid.lg-grid-cols-3 {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            .dashboard-grid.lg-grid-cols-4 {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        /* Enhanced Card Design */
+        .dashboard-card {
+            background: white;
+            padding: clamp(var(--space-lg), 3vw, var(--space-xl));
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--gray-100);
+            transition: all var(--transition-base);
+            position: relative;
+            overflow: hidden;
+            contain: layout style;
+        }
+
+        .dashboard-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, 
+                var(--primary-blue) 0%, 
+                var(--secondary-teal) 50%, 
+                var(--accent-purple) 100%);
+            opacity: 0;
+            transition: opacity var(--transition-base);
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .dashboard-card:hover::before {
+            opacity: 1;
+        }
+
+        .dashboard-card h3 {
+            font-size: 1.25rem;
+            margin-bottom: var(--space-lg);
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            color: var(--gray-800);
+        }
+
+        /* Chart Containers with Aspect Ratio */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16 / 10;
+            min-height: 250px;
+            max-height: 400px;
+        }
+
+        .chart-container canvas {
+            position: absolute;
+            inset: 0;
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        /* Map Containers */
+        .map-container {
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--gray-200);
+            background: white;
+            position: relative;
+        }
+
+        #nycMap,
+        #searchMap {
+            width: 100%;
+            height: clamp(400px, 60vh, 600px);
+            background: var(--gray-100);
+        }
+
+        /* Map Controls with Modern Design */
+        .map-controls {
+            background: white;
+            padding: var(--space-lg);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            margin-bottom: var(--space-lg);
+            border: 1px solid var(--gray-200);
+        }
+
+        .filter-grid {
+            display: grid;
+            gap: var(--space-md);
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-sm);
+        }
+
+        .filter-label {
+            font-weight: 600;
+            color: var(--gray-700);
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+
+        .filter-input,
+        .filter-select {
+            padding: var(--space-sm) var(--space-md);
+            border: 2px solid var(--gray-200);
+            border-radius: var(--radius-md);
+            font-size: 0.95rem;
+            transition: all var(--transition-fast);
+            background: white;
+            min-height: 44px;
+            width: 100%;
+            font-family: inherit;
+        }
+
+        .filter-input:hover,
+        .filter-select:hover {
+            border-color: var(--gray-300);
+        }
+
+        .filter-input:focus,
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        /* Enhanced Range Slider */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 6px;
+            border-radius: var(--radius-full);
+            background: var(--gray-200);
+            outline: none;
+            transition: background var(--transition-base);
+        }
+
+        input[type="range"]:hover {
+            background: var(--gray-300);
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: var(--radius-full);
+            background: var(--primary-blue);
+            cursor: pointer;
+            box-shadow: var(--shadow-md);
+            transition: all var(--transition-fast);
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: var(--shadow-lg);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: var(--radius-full);
+            background: var(--primary-blue);
+            cursor: pointer;
+            box-shadow: var(--shadow-md);
+            transition: all var(--transition-fast);
+            border: none;
+        }
+
+        input[type="range"]::-moz-range-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .slider-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: var(--space-sm);
+            font-size: 0.875rem;
+            color: var(--gray-600);
+        }
+
+        /* Statistics Cards */
+        .stats-grid {
+            display: grid;
+            gap: var(--space-lg);
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            margin-bottom: var(--space-2xl);
+        }
+
+        .stat-card {
+            background: white;
+            padding: var(--space-lg);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--gray-200);
+            text-align: center;
+            transition: all var(--transition-base);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--primary-blue);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform var(--transition-base);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stat-card:hover::after {
+            transform: scaleX(1);
+        }
+
+        .stat-value {
+            display: block;
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: var(--space-sm);
+            letter-spacing: -0.02em;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+
+        /* Station List Items */
+        .station-list {
+            max-height: 450px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-md);
+            padding-right: var(--space-sm);
+            scrollbar-width: thin;
+            scrollbar-color: var(--gray-300) transparent;
+        }
+
+        .station-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .station-list::-webkit-scrollbar-track {
+            background: var(--gray-100);
+            border-radius: var(--radius-full);
+        }
+
+        .station-list::-webkit-scrollbar-thumb {
+            background: var(--gray-300);
+            border-radius: var(--radius-full);
+        }
+
+        .station-list::-webkit-scrollbar-thumb:hover {
+            background: var(--gray-400);
+        }
+
+        .station-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--space-md);
+            background: white;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--gray-200);
+            transition: all var(--transition-base);
+            gap: var(--space-md);
+            min-height: 80px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .station-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--primary-blue);
+            transform: scaleY(0);
+            transition: transform var(--transition-base);
+        }
+
+        .station-item:hover,
+        .station-item:focus-within {
+            transform: translateX(4px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--primary-blue);
+        }
+
+        .station-item:hover::before,
+        .station-item:focus-within::before {
+            transform: scaleY(1);
+        }
+
+        .station-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .station-info h4 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: var(--space-xs);
+            color: var(--gray-800);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .station-info p {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            flex-wrap: wrap;
+        }
+
+        .station-metrics {
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .station-rent {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+            margin-bottom: var(--space-xs);
+        }
+
+        .station-change {
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .station-actions {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+
+        .compare-btn {
+            padding: var(--space-xs) var(--space-md);
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            white-space: nowrap;
+        }
+
+        .compare-btn:hover {
+            background: var(--primary-blue-dark);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .compare-btn:focus-visible {
+            outline: 2px solid var(--primary-blue);
+            outline-offset: 2px;
+        }
+
+        /* Subway Line Badges */
+        .subway-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: var(--radius-full);
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin: 0 2px;
+            box-shadow: var(--shadow-sm);
+            color: white;
+            flex-shrink: 0;
+        }
+
+        /* Enhanced Buttons */
+        .btn {
+            padding: var(--space-sm) var(--space-lg);
+            border: none;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: all var(--transition-fast);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-sm);
+            text-decoration: none;
+            min-height: 44px;
+            position: relative;
+            overflow: hidden;
+            isolation: isolate;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+            opacity: 0;
+            transition: opacity var(--transition-fast);
+            z-index: -1;
+        }
+
+        .btn:hover::before {
+            opacity: 1;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark));
+            color: white;
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-primary:focus-visible {
+            outline: 2px solid var(--primary-blue);
+            outline-offset: 2px;
+        }
+
+        /* Budget Calculator Section */
+        .budget-calculator {
+            background: linear-gradient(135deg, var(--primary-blue), var(--secondary-teal));
+            color: white;
+            padding: var(--space-2xl);
+            border-radius: var(--radius-xl);
+            margin-bottom: var(--space-xl);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .calculator-input {
+            width: 100%;
+            padding: var(--space-md);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+            margin-top: var(--space-sm);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            backdrop-filter: blur(10px);
+            transition: all var(--transition-fast);
+        }
+
+        .calculator-input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .calculator-input:focus {
+            outline: none;
+            border-color: white;
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2);
+        }
+
+        .calculator-result {
+            background: rgba(255, 255, 255, 0.15);
+            padding: var(--space-lg);
+            border-radius: var(--radius-lg);
+            margin-top: var(--space-lg);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* Comparison Panel */
+        #comparisonPanel {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: var(--z-fixed);
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+            border-top: 2px solid var(--primary-blue);
+            padding: var(--space-lg);
+            transition: transform var(--transition-base);
+            display: none;
+            backdrop-filter: blur(10px);
+            max-height: 50vh;
+            overflow-y: auto;
+        }
+
+        #comparisonPanel.show {
+            display: block;
+            animation: slideUp var(--transition-base) ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+            }
+            to {
+                transform: translateY(0);
+            }
+        }
+
+        .comparison-panel-inner {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .comparison-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-weight: 700;
+            font-size: 1.125rem;
+            margin-bottom: var(--space-lg);
+            padding-bottom: var(--space-md);
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .comparison-table {
+            display: grid;
+            gap: var(--space-sm);
+        }
+
+        .comparison-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr auto;
+            align-items: center;
+            gap: var(--space-md);
+            background: var(--gray-50);
+            border-radius: var(--radius-md);
+            padding: var(--space-md);
+            font-size: 0.95rem;
+            border: 1px solid var(--gray-200);
+            transition: all var(--transition-fast);
+        }
+
+        .comparison-row:hover {
+            background: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .comparison-labels {
+            background: var(--primary-blue);
+            color: white;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.875rem;
+            letter-spacing: 0.025em;
+        }
+
+        /* View Management */
+        .view {
+            display: none;
+            animation: fadeIn var(--transition-base) ease-out;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Expert Insights Cards */
+        .insight-card {
+            background: white;
+            padding: var(--space-xl);
+            border-radius: var(--radius-lg);
+            margin-bottom: var(--space-lg);
+            border-left: 4px solid var(--primary-blue);
+            box-shadow: var(--shadow-md);
+            transition: all var(--transition-base);
+        }
+
+        .insight-card:hover {
+            transform: translateX(4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .insight-card h4 {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            margin-bottom: var(--space-md);
+            color: var(--gray-800);
+        }
+
+        .insight-card p {
+            color: var(--gray-600);
+            line-height: 1.7;
+        }
+
+        .insight-blue { border-left-color: var(--primary-blue); }
+        .insight-green { border-left-color: var(--success-green); }
+        .insight-amber { border-left-color: var(--warning-amber); }
+        .insight-purple { border-left-color: var(--accent-purple); }
+
+        /* Color Utility Classes */
+        .stat-blue { color: var(--primary-blue); }
+        .stat-green { color: var(--success-green); }
+        .stat-red { color: var(--danger-red); }
+        .stat-purple { color: var(--accent-purple); }
+        .stat-amber { color: var(--warning-amber); }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .dashboard-main {
+                padding: var(--space-lg);
+            }
+
+            .nav-button {
+                padding: var(--space-sm) var(--space-md);
+                font-size: 0.875rem;
+            }
+
+            .nav-icon {
+                width: 18px;
+                height: 18px;
+            }
+
+            .station-item {
+                flex-direction: column;
+                align-items: stretch;
+                gap: var(--space-sm);
+                text-align: center;
+            }
+
+            .station-metrics {
+                text-align: center;
+                display: flex;
+                justify-content: space-around;
+                align-items: center;
+            }
+
+            .comparison-row {
+                grid-template-columns: 1fr;
+                text-align: center;
+                gap: var(--space-sm);
+            }
+
+            .filter-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .chart-container {
+                aspect-ratio: 16 / 12;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero-title {
+                font-size: 2rem;
+            }
+
+            .hero-subtitle {
+                font-size: 1.125rem;
+            }
+
+            .dashboard-card {
+                padding: var(--space-md);
+            }
+
+            .btn {
+                padding: var(--space-sm) var(--space-md);
+                font-size: 0.875rem;
+            }
+        }
+
+        /* Print Styles */
+        @media print {
+            .dashboard-nav,
+            .map-controls,
+            #comparisonPanel,
+            .skip-link,
+            .compare-btn {
+                display: none !important;
+            }
+
+            .dashboard-card {
+                break-inside: avoid;
+                box-shadow: none;
+                border: 1px solid var(--gray-300);
+                margin-bottom: var(--space-lg);
+            }
+
+            .dashboard-hero {
+                background: none;
+                color: var(--gray-800);
+                box-shadow: none;
+                border-bottom: 2px solid var(--gray-300);
+            }
+
+            .hero-title,
+            .hero-subtitle {
+                color: var(--gray-800);
+            }
+
+            .stat-value {
+                color: var(--gray-800) !important;
+            }
+
+            body {
+                background: white;
+            }
+        }
+
+        /* High Contrast Mode Support */
+        @media (prefers-contrast: high) {
+            :root {
+                --primary-blue: #0052cc;
+                --gray-200: #666;
+                --gray-300: #555;
+                --gray-600: #222;
+                --gray-800: #000;
+            }
+
+            .dashboard-card {
+                border: 2px solid var(--gray-800);
+                background: white;
+            }
+
+            .nav-button:focus {
+                outline: 3px solid var(--gray-800);
+            }
+
+            .station-item {
+                border: 2px solid var(--gray-600);
+            }
+
+            .btn {
+                border: 2px solid currentColor;
+            }
+        }
+
+        /* Reduced Motion Support */
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
+
+        /* Dark Mode Support (if needed in future) */
+        @media (prefers-color-scheme: dark) {
+            /* Dark mode styles can be added here */
+        }
+
+        /* Enhanced Leaflet Map Styling */
+        .leaflet-container {
+            font-family: inherit;
+            background: var(--gray-100);
+        }
+
+        .leaflet-popup-content-wrapper {
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            font-family: inherit;
+        }
+
+        .leaflet-popup-content {
+            margin: var(--space-md);
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        .leaflet-control-zoom {
+            border: none !important;
+            box-shadow: var(--shadow-md) !important;
+            border-radius: var(--radius-md) !important;
+        }
+
+        .leaflet-control-zoom a {
+            background: white !important;
+            color: var(--gray-700) !important;
+            border: none !important;
+            transition: all var(--transition-fast) !important;
+        }
+
+        .leaflet-control-zoom a:hover {
+            background: var(--gray-100) !important;
+            color: var(--primary-blue) !important;
+        }
+
+        .leaflet-control-zoom a:first-child {
+            border-radius: var(--radius-md) var(--radius-md) 0 0 !important;
+        }
+
+        .leaflet-control-zoom a:last-child {
+            border-radius: 0 0 var(--radius-md) var(--radius-md) !important;
+        }
+
+        /* Custom Scrollbar Styling */
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: var(--gray-300) transparent;
+        }
+
+        *::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        *::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        *::-webkit-scrollbar-thumb {
+            background: var(--gray-300);
+            border-radius: var(--radius-full);
+            border: 2px solid transparent;
+            background-clip: content-box;
+        }
+
+        *::-webkit-scrollbar-thumb:hover {
+            background: var(--gray-400);
+        }
+
+        /* Focus Visible Polyfill */
+        .js-focus-visible :focus:not(.focus-visible) {
+            outline: none;
+        }
+
+        /* Loading Skeleton */
+        .skeleton {
+            background: linear-gradient(
+                90deg,
+                var(--gray-200) 25%,
+                var(--gray-100) 50%,
+                var(--gray-200) 75%
+            );
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+            border-radius: var(--radius-md);
+        }
+
+        @keyframes loading {
+            0% {
+                background-position: 200% 0;
+            }
+            100% {
+                background-position: -200% 0;
+            }
+        }
+
+        /* Error State Styling */
+        .error-container {
+            text-align: center;
+            padding: var(--space-2xl);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .error-icon {
+            font-size: 3rem;
+            margin-bottom: var(--space-lg);
+        }
+
+        .error-title {
+            color: var(--danger-red);
+            margin-bottom: var(--space-md);
+        }
+
+        .error-message {
+            color: var(--gray-600);
+            margin-bottom: var(--space-xl);
+        }
+
+        /* Notification Toast */
+        .notification {
+            position: fixed;
+            top: var(--space-lg);
+            right: var(--space-lg);
+            background: white;
+            padding: var(--space-md) var(--space-lg);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-xl);
+            z-index: var(--z-tooltip);
+            max-width: 400px;
+            transform: translateX(120%);
+            transition: transform var(--transition-base);
+            border-left: 4px solid var(--primary-blue);
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.error {
+            border-left-color: var(--danger-red);
+        }
+
+        .notification.success {
+            border-left-color: var(--success-green);
+        }
+
+        /* Performance Optimizations */
+        .will-change-transform {
+            will-change: transform;
+        }
+
+        .gpu-accelerated {
+            transform: translateZ(0);
+            backface-visibility: hidden;
+        }
+
+        /* Container Queries Fallback */
+        @supports not (container-type: inline-size) {
+            @media (min-width: 768px) {
+                .dashboard-grid.md-grid-cols-2 {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+                .dashboard-grid.md-grid-cols-3 {
+                    grid-template-columns: repeat(3, 1fr);
+                }
+            }
+
+            @media (min-width: 1024px) {
+                .dashboard-grid.lg-grid-cols-3 {
+                    grid-template-columns: repeat(3, 1fr);
+                }
+                .dashboard-grid.lg-grid-cols-4 {
+                    grid-template-columns: repeat(4, 1fr);
+                }
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Skip to main content for accessibility -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
+    <div class="elementor-widget-nyc-subway-dashboard">
+        <div class="elementor-widget-container">
+            <div class="nyc-subway-dashboard" role="application" aria-label="NYC Subway Rental Analytics Dashboard">
+                
+                <!-- Loading State -->
+                <div id="loadingState" class="loading-container" aria-live="polite" aria-busy="true">
+                    <div class="spinner" aria-hidden="true"></div>
+                    <h3 style="margin: 0; color: var(--gray-700);">Loading Your NYC Transit Guide...</h3>
+                    <p style="margin: 0; color: var(--gray-500);">Fetching real-time data from liamblank.com</p>
+                </div>
+
+                <!-- Error State -->
+                <div id="errorState" class="error-container" style="display: none;" aria-live="assertive" role="alert">
+                    <div class="error-icon" aria-hidden="true">⚠️</div>
+                    <h3 class="error-title">Unable to Load Data</h3>
+                    <p id="errorMessage" class="error-message">Please check your connection and try again.</p>
+                    <button class="btn btn-primary" onclick="nycSubwayApp.reload()" aria-label="Reload application">
+                        <span aria-hidden="true">🔄</span> Try Again
+                    </button>
+                </div>
+
+                <!-- Main Application -->
+                <div id="mainApp" style="display: none;">
+                    <!-- Hero Section -->
+                    <header class="dashboard-hero" role="banner">
+                        <div class="hero-content">
+                            <h1 class="hero-title">NYC Transit Rental Guide</h1>
+                            <p class="hero-subtitle">Make smarter rental decisions with real-time data on 467 subway-connected neighborhoods</p>
+                            <div class="hero-stats" role="group" aria-label="Key statistics">
+                                <div class="hero-stat">
+                                    <span class="hero-stat-number" id="totalStations" aria-live="polite">467</span>
+                                    <span class="hero-stat-label">Stations Analyzed</span>
+                                </div>
+                                <div class="hero-stat">
+                                    <span class="hero-stat-number" id="averageRent" aria-live="polite">$3,193</span>
+                                    <span class="hero-stat-label">Average Rent</span>
+                                </div>
+                                <div class="hero-stat">
+                                    <span class="hero-stat-number" id="dataCoverage" aria-live="polite">99%</span>
+                                    <span class="hero-stat-label">Data Coverage</span>
+                                </div>
+                            </div>
+                        </div>
+                    </header>
+
+                    <!-- Navigation -->
+                    <nav class="dashboard-nav" role="navigation" aria-label="Main navigation">
+                        <div class="nav-content">
+                            <button class="nav-button active" onclick="nycSubwayApp.switchView('overview')" id="navOverview" aria-controls="overviewView" aria-current="page">
+                                <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l9-9 9 9M4.5 10.5V21h15V10.5"/>
+                                </svg>
+                                <span>Market Overview</span>
+                            </button>
+                            <button class="nav-button" onclick="nycSubwayApp.switchView('search')" id="navSearch" aria-controls="searchView">
+                                <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                                    <circle cx="11" cy="11" r="7"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35"/>
+                                </svg>
+                                <span>Find Your Area</span>
+                            </button>
+                            <button class="nav-button" onclick="nycSubwayApp.switchView('geographic')" id="navGeographic" aria-controls="geographicView">
+                                <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                                    <polygon points="3 7 9 3 15 7 21 3 21 17 15 21 9 17 3 21 3 7"/>
+                                </svg>
+                                <span>Map Explorer</span>
+                            </button>
+                            <button class="nav-button" onclick="nycSubwayApp.switchView('trends')" id="navTrends" aria-controls="trendsView">
+                                <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                                    <polyline points="3 17 9 11 13 15 21 7"/>
+                                </svg>
+                                <span>Market Trends</span>
+                            </button>
+                            <button class="nav-button" onclick="nycSubwayApp.switchView('budget')" id="navBudget" aria-controls="budgetView">
+                                <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                                    <rect x="5" y="3" width="14" height="18" rx="2"/>
+                                    <path d="M9 7h6M9 11h2M13 11h2M9 15h2M13 15h2"/>
+                                </svg>
+                                <span>Budget Planner</span>
+                            </button>
+                            <button class="nav-button" onclick="nycSubwayApp.switchView('insights')" id="navInsights" aria-controls="insightsView">
+                                <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M9 18h6M10 22h4M12 2a7 7 0 0 1 7 7c0 5.5-7 13-7 13s-7-7.5-7-13a7 7 0 0 1 7-7z"/>
+                                </svg>
+                                <span>Expert Analysis</span>
+                            </button>
+                        </div>
+                    </nav>
+
+                    <main class="dashboard-main" id="main-content">
+                        
+                        <!-- Market Overview View -->
+                        <section id="overviewView" class="view active" aria-labelledby="overviewTitle">
+                            <h2 id="overviewTitle" class="sr-only">Market Overview</h2>
+                            
+                            <div class="dashboard-grid lg-grid-cols-3" style="margin-bottom: var(--space-2xl);">
+                                <!-- Quick Action Cards -->
+                                <article class="dashboard-card">
+                                    <h3><span aria-hidden="true">🔍</span> Find My Perfect Area</h3>
+                                    <p>Search by budget, commute, or lifestyle preferences to discover your ideal NYC neighborhood.</p>
+                                    <button class="btn btn-primary" onclick="nycSubwayApp.switchView('search')">Start Search</button>
+                                </article>
+
+                                <article class="dashboard-card">
+                                    <h3><span aria-hidden="true">💰</span> Affordability Calculator</h3>
+                                    <p>Calculate what you can afford based on your income and financial goals.</p>
+                                    <button class="btn btn-primary" onclick="nycSubwayApp.switchView('budget')">Calculate Budget</button>
+                                </article>
+
+                                <article class="dashboard-card">
+                                    <h3><span aria-hidden="true">📈</span> Market Timing</h3>
+                                    <p>Understand current market trends to make informed rental decisions.</p>
+                                    <button class="btn btn-primary" onclick="nycSubwayApp.switchView('trends')">View Trends</button>
+                                </article>
+                            </div>
+
+                            <!-- Key Statistics -->
+                            <div class="stats-grid">
+                                <div class="stat-card">
+                                    <span class="stat-value stat-blue" id="avgRentStat">$3,193</span>
+                                    <span class="stat-label">Average Monthly Rent</span>
+                                </div>
+                                <div class="stat-card">
+                                    <span class="stat-value stat-green" id="affordableStationsStat">156</span>
+                                    <span class="stat-label">Stations Under $3K</span>
+                                </div>
+                                <div class="stat-card">
+                                    <span class="stat-value stat-purple" id="adaStationsStat">168</span>
+                                    <span class="stat-label">ADA Accessible</span>
+                                </div>
+                                <div class="stat-card">
+                                    <span class="stat-value stat-amber" id="avgChangeStat">+3.8%</span>
+                                    <span class="stat-label">YoY Change</span>
+                                </div>
+                            </div>
+
+                            <!-- Charts Grid -->
+                            <div class="dashboard-grid md-grid-cols-2">
+                                <article class="dashboard-card">
+                                    <h3>Rent by Borough</h3>
+                                    <div class="chart-container">
+                                        <canvas id="boroughRentChart" role="img" aria-label="Bar chart showing average rent by borough"></canvas>
+                                    </div>
+                                </article>
+
+                                <article class="dashboard-card">
+                                    <h3>Price Changes by Borough</h3>
+                                    <div class="chart-container">
+                                        <canvas id="boroughChangeChart" role="img" aria-label="Bar chart showing price changes by borough"></canvas>
+                                    </div>
+                                </article>
+
+                                <article class="dashboard-card">
+                                    <h3>Affordability Breakdown</h3>
+                                    <div class="chart-container">
+                                        <canvas id="rentDistributionChart" role="img" aria-label="Pie chart showing rent distribution across price ranges"></canvas>
+                                    </div>
+                                </article>
+
+                                <article class="dashboard-card">
+                                    <h3>Best Value Stations</h3>
+                                    <div class="station-list" id="bestValueStations" role="region" aria-label="List of best value subway stations">
+                                        <!-- Populated by JavaScript -->
+                                    </div>
+                                </article>
+                            </div>
+                        </section>
+
+                        <!-- Search & Find Your Area View -->
+                        <section id="searchView" class="view" aria-labelledby="searchTitle">
+                            <h2 id="searchTitle" class="sr-only">Find Your Area</h2>
+                            
+                            <article class="dashboard-card">
+                                <h3>Find Your Perfect NYC Neighborhood</h3>
+                                <form class="filter-grid" onsubmit="return false;">
+                                    <div class="filter-group">
+                                        <label class="filter-label" for="budgetSlider">Maximum Monthly Rent</label>
+                                        <input type="range" id="budgetSlider" class="filter-input" 
+                                               min="1500" max="6000" value="4000" step="100"
+                                               aria-describedby="budgetValue"
+                                               title="Adjust your maximum monthly rent budget">
+                                        <div class="slider-labels">
+                                            <span>$1,500</span>
+                                            <span id="budgetValue" aria-live="polite">$4,000</span>
+                                            <span>$6,000+</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="filter-group">
+                                        <label class="filter-label" for="boroughFilter">Preferred Borough</label>
+                                        <select id="boroughFilter" class="filter-select">
+                                            <option value="all">All Boroughs</option>
+                                            <option value="Manhattan">Manhattan</option>
+                                            <option value="Brooklyn">Brooklyn</option>
+                                            <option value="Queens">Queens</option>
+                                            <option value="Bronx">Bronx</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="filter-group">
+                                        <label class="filter-label" for="accessibilityFilter">Accessibility Needs</label>
+                                        <select id="accessibilityFilter" class="filter-select">
+                                            <option value="all">No Preference</option>
+                                            <option value="ada">ADA Accessible Only</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="filter-group">
+                                        <label class="filter-label" for="commuteFilter">Commute Priority</label>
+                                        <select id="commuteFilter" class="filter-select">
+                                            <option value="all">No Preference</option>
+                                            <option value="cbd">Central Business District</option>
+                                            <option value="express">Express Line Access</option>
+                                        </select>
+                                    </div>
+                                </form>
+                            </article>
+
+                            <article class="dashboard-card">
+                                <h3><span aria-hidden="true">🎯</span> Matches for Your Criteria</h3>
+                                <div class="station-list" id="searchResults" role="region" aria-label="Search results" aria-live="polite">
+                                    <!-- Populated by JavaScript -->
+                                </div>
+                            </article>
+
+                            <article class="dashboard-card">
+                                <h3>Recommendations Map</h3>
+                                <div class="map-container">
+                                    <div id="searchMap" role="img" aria-label="Interactive map showing recommended stations"></div>
+                                </div>
+                            </article>
+                        </section>
+
+                        <!-- Geographic Map View -->
+                        <section id="geographicView" class="view" aria-labelledby="geographicTitle">
+                            <h2 id="geographicTitle" class="sr-only">Map Explorer</h2>
+                            
+                            <div class="map-controls">
+                                <form class="filter-grid" onsubmit="return false;">
+                                    <div class="filter-group">
+                                        <label class="filter-label" for="nycMapColorBy">Color By</label>
+                                        <select id="nycMapColorBy" class="filter-select">
+                                            <option value="rent">Monthly Rent</option>
+                                            <option value="borough">Borough</option>
+                                            <option value="change">Price Change</option>
+                                            <option value="ada">Accessibility</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="filter-group">
+                                        <label class="filter-label" for="nycMapSizeBy">Size By</label>
+                                        <select id="nycMapSizeBy" class="filter-select">
+                                            <option value="fixed">Fixed Size</option>
+                                            <option value="rent">Rent Level</option>
+                                            <option value="change">Price Change</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="filter-group">
+                                        <label class="filter-label" for="nycMapBoroughFilter">Filter Borough</label>
+                                        <select id="nycMapBoroughFilter" class="filter-select">
+                                            <option value="all">All Boroughs</option>
+                                            <option value="Manhattan">Manhattan</option>
+                                            <option value="Brooklyn">Brooklyn</option>
+                                            <option value="Queens">Queens</option>
+                                            <option value="Bronx">Bronx</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="filter-group">
+                                        <label class="filter-label" for="nycMapAdvancedFilter">Show Only</label>
+                                        <select id="nycMapAdvancedFilter" class="filter-select">
+                                            <option value="all">All Stations</option>
+                                            <option value="ada">ADA Accessible</option>
+                                            <option value="affordable">Budget-Friendly</option>
+                                            <option value="luxury">Premium</option>
+                                        </select>
+                                    </div>
+
+                                    <button id="nycMapResetBtn" class="btn btn-primary" type="button">
+                                        <span aria-hidden="true">🔄</span> Reset View
+                                    </button>
+                                </form>
+                            </div>
+
+                            <article class="dashboard-card">
+                                <h3><span aria-hidden="true">🗺️</span> Interactive NYC Subway Rental Map</h3>
+                                <div class="map-container">
+                                    <div id="nycMap" role="img" aria-label="Interactive NYC subway rental map"></div>
+                                </div>
+                                <div id="mapLegend" role="region" aria-label="Map legend"></div>
+                            </article>
+
+                            <div class="dashboard-grid md-grid-cols-2">
+                                <article class="dashboard-card">
+                                    <h3>Most Expensive Areas</h3>
+                                    <div class="station-list" id="expensiveStations" role="region" aria-label="Most expensive subway stations">
+                                        <!-- Populated by JavaScript -->
+                                    </div>
+                                </article>
+
+                                <article class="dashboard-card">
+                                    <h3>Fastest Growing Areas</h3>
+                                    <div class="station-list" id="growingStations" role="region" aria-label="Fastest growing subway stations">
+                                        <!-- Populated by JavaScript -->
+                                    </div>
+                                </article>
+                            </div>
+                        </section>
+
+                        <!-- Market Trends View -->
+                        <section id="trendsView" class="view" aria-labelledby="trendsTitle">
+                            <h2 id="trendsTitle" class="sr-only">Market Trends</h2>
+                            
+                            <div class="dashboard-grid md-grid-cols-2">
+                                <article class="dashboard-card">
+                                    <h3>Rent vs Price Change Analysis</h3>
+                                    <div class="chart-container">
+                                        <canvas id="rentChangeScatter" role="img" aria-label="Scatter plot showing rent vs price change"></canvas>
+                                    </div>
+                                </article>
+
+                                <article class="dashboard-card">
+                                    <h3>Market Movement Distribution</h3>
+                                    <div class="chart-container">
+                                        <canvas id="changeDistributionChart" role="img" aria-label="Bar chart showing distribution of price changes"></canvas>
+                                    </div>
+                                </article>
+
+                                <article class="dashboard-card">
+                                    <h3>Borough Trend Comparison</h3>
+                                    <div class="chart-container">
+                                        <canvas id="boroughTrendChart" role="img" aria-label="Line chart showing trend comparison across boroughs"></canvas>
+                                    </div>
+                                </article>
+
+                                <article class="dashboard-card">
+                                    <h3>Performance by Price Tier</h3>
+                                    <div class="chart-container">
+                                        <canvas id="priceRangeChart" role="img" aria-label="Bar chart showing performance by price tier"></canvas>
+                                    </div>
+                                </article>
+                            </div>
+                        </section>
+
+                        <!-- Budget Planner View -->
+                        <section id="budgetView" class="view" aria-labelledby="budgetTitle">
+                            <h2 id="budgetTitle" class="sr-only">Budget Planner</h2>
+                            
+                            <article class="budget-calculator">
+                                <h3 style="color: white; margin-bottom: var(--space-xl);">
+                                    <span aria-hidden="true">💰</span> NYC Rent Affordability Calculator
+                                </h3>
+
+                                <form class="filter-grid" onsubmit="return false;">
+                                    <div class="filter-group">
+                                        <label style="display: block; margin-bottom: var(--space-sm); font-weight: 600; color: white;" for="incomeInput">
+                                            Annual Income (Before Tax)
+                                        </label>
+                                        <input type="number" id="incomeInput" class="calculator-input"
+                                               placeholder="$100,000" value="100000" aria-describedby="incomeHelp">
+                                        <small id="incomeHelp" style="color: rgba(255,255,255,0.8); font-size: 0.875rem;">Your gross annual income</small>
+                                    </div>
+
+                                    <div class="filter-group">
+                                        <label style="display: block; margin-bottom: var(--space-sm); font-weight: 600; color: white;" for="debtInput">
+                                            Monthly Debt Payments
+                                        </label>
+                                        <input type="number" id="debtInput" class="calculator-input"
+                                               placeholder="$300" value="300" aria-describedby="debtHelp">
+                                        <small id="debtHelp" style="color: rgba(255,255,255,0.8); font-size: 0.875rem;">Student loans, credit cards, etc.</small>
+                                    </div>
+
+                                    <div class="filter-group">
+                                        <label style="display: block; margin-bottom: var(--space-sm); font-weight: 600; color: white;" for="savingsInput">
+                                            Savings Goal (Monthly)
+                                        </label>
+                                        <input type="number" id="savingsInput" class="calculator-input"
+                                               placeholder="$200" value="200" aria-describedby="savingsHelp">
+                                        <small id="savingsHelp" style="color: rgba(255,255,255,0.8); font-size: 0.875rem;">Amount to save each month</small>
+                                    </div>
+                                </form>
+
+                                <div class="calculator-result" id="budgetResult" aria-live="polite">
+                                    <h4 style="margin: 0 0 var(--space-sm) 0; color: white;">Your Recommended Rent Budget: <span id="recommendedBudget">$1,875</span></h4>
+                                    <p style="margin: 0; opacity: 0.9; color: white;">Based on the 30% rule with debt and savings considerations</p>
+                                </div>
+                            </article>
+
+                            <article class="dashboard-card">
+                                <h3><span aria-hidden="true">🎯</span> Affordable Stations for You</h3>
+                                <form class="filter-grid" onsubmit="return false;">
+                                    <div class="filter-group">
+                                        <label class="filter-label" for="budgetBoroughFilter">Preferred Borough</label>
+                                        <select id="budgetBoroughFilter" class="filter-select">
+                                            <option value="all">All Boroughs</option>
+                                            <option value="Manhattan">Manhattan</option>
+                                            <option value="Brooklyn">Brooklyn</option>
+                                            <option value="Queens">Queens</option>
+                                            <option value="Bronx">Bronx</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="filter-group">
+                                        <label class="filter-label" for="budgetAccessibilityFilter">Accessibility Needs</label>
+                                        <select id="budgetAccessibilityFilter" class="filter-select">
+                                            <option value="all">No Preference</option>
+                                            <option value="ada">ADA Accessible Only</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="filter-group">
+                                        <label class="filter-label" for="budgetCommuteFilter">Commute Priority</label>
+                                        <select id="budgetCommuteFilter" class="filter-select">
+                                            <option value="all">No Preference</option>
+                                            <option value="cbd">Central Business District</option>
+                                            <option value="express">Express Line Access</option>
+                                        </select>
+                                    </div>
+                                </form>
+
+                                <div class="station-list" id="budgetStations" role="region" aria-label="Affordable stations within your budget" aria-live="polite">
+                                    <!-- Populated by JavaScript -->
+                                </div>
+                            </article>
+
+                            <article class="dashboard-card">
+                                <h3>Budget Breakdown</h3>
+                                <div class="chart-container">
+                                    <canvas id="budgetChart" role="img" aria-label="Pie chart showing budget breakdown"></canvas>
+                                </div>
+                            </article>
+                        </section>
+
+                        <!-- Expert Insights View -->
+                        <section id="insightsView" class="view" aria-labelledby="insightsTitle">
+                            <h2 id="insightsTitle" class="sr-only">Expert Analysis</h2>
+                            
+                            <article class="dashboard-card">
+                                <h3><span aria-hidden="true">💡</span> Expert Market Analysis</h3>
+                                <div id="expertInsights" role="region" aria-label="Expert market insights">
+                                    <!-- Populated by JavaScript -->
+                                </div>
+                            </article>
+                        </section>
+
+                    </main>
+                </div>
+
+                <!-- Station Comparison Panel -->
+                <aside id="comparisonPanel" role="complementary" aria-label="Station comparison panel">
+                    <div class="comparison-panel-inner">
+                        <div class="comparison-header">
+                            <span>Compare Stations</span>
+                            <button class="btn btn-primary" onclick="nycSubwayApp.clearComparison()" aria-label="Clear all comparisons">
+                                Clear All
+                            </button>
+                        </div>
+                        <div class="comparison-table" id="comparisonTable" role="table">
+                            <!-- Populated by JavaScript -->
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </div>
+    </div>
+
+    <!-- External JavaScript Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="" defer></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js" defer></script>
+
+    <script>
+        /**
+         * NYC Subway Dashboard Application
+         * Production-ready implementation for Elementor Pro
+         * Data source: liamblank.com
+         * Version: 2.0.0
+         */
+        
+        // Immediately create placeholder to prevent errors
+        window.nycSubwayApp = {
+            switchView: () => {},
+            clearComparison: () => {},
+            addToComparison: () => {},
+            removeFromComparison: () => {},
+            reload: () => location.reload()
+        };
+
+        // Main application code will be loaded after dependencies
+        document.addEventListener('DOMContentLoaded', () => {
+            // Load the main application module
+            const script = document.createElement('script');
+            script.src = 'nyc-subway-app.js';
+            script.defer = true;
+            document.body.appendChild(script);
+        });
+    </script>
+</body>
+</html>
